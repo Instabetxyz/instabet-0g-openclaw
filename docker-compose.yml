@@ -1,0 +1,95 @@
+version: "3.9"
+
+# ── Instabet Agent Stack ──────────────────────────────────────────────────────
+#
+# Services:
+#   zg-broker       — 0G Compute broker: funds wallet, then serves OpenAI-compatible proxy on :3001
+#   instabet-agent  — OpenClaw gateway with trading skill + cron loop
+#
+# Quick start:
+#   cp .env.example .env && nano .env
+#   docker compose up --build
+#
+# Manual trigger:
+#   docker compose exec instabet-agent openclaw cron list
+#   docker compose exec instabet-agent openclaw cron run <jobId>
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── 0G Compute broker + proxy ─────────────────────────────────────────────
+  # setup.mjs uses the SDK to fund accounts non-interactively,
+  # then starts `0g-compute-cli inference serve` on port 3001.
+  zg-broker:
+    build:
+      context: ./zg-broker
+      dockerfile: Dockerfile
+    container_name: instabet-zg-broker
+    restart: unless-stopped
+    environment:
+      PRIVATE_KEY: ${ZG_WALLET_PRIVATE_KEY}
+      ZG_PROVIDER_ADDRESS: ${ZG_PROVIDER_ADDRESS}
+      ZG_NETWORK: ${ZG_NETWORK:-testnet}
+      ZG_DEPOSIT_AMOUNT: ${ZG_DEPOSIT_AMOUNT:-0.5}
+      ZG_PROVIDER_FUND: ${ZG_PROVIDER_FUND:-0.1}
+      PROXY_PORT: "3001"
+    volumes:
+      - zg-broker-data:/root/.0g-compute-cli
+    ports:
+      - "3001:3001"
+    healthcheck:
+      # The proxy exposes /v1/proxy/models once ready
+      test: ["CMD", "curl", "-sf", "http://localhost:3001/v1/proxy/models"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+  # ── OpenClaw agent ────────────────────────────────────────────────────────
+  instabet-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: instabet-agent
+    restart: unless-stopped
+    depends_on:
+      zg-broker:
+        condition: service_healthy
+    environment:
+      # 0G Compute — routes through the broker sidecar
+      ZG_SERVICE_URL: http://zg-broker:3001
+      ZG_API_KEY: ${ZG_API_KEY:-zg-proxy}
+
+      # Instabet API
+      INSTABET_BASE_URL: ${INSTABET_BASE_URL}
+      INSTABET_API_KEY: ${INSTABET_API_KEY}
+
+      # Trading parameters
+      BET_AMOUNT: ${BET_AMOUNT:-0.01}
+      CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.65}
+
+      # Cron schedule (standard 5-field cron expression)
+      CRON_INTERVAL: ${CRON_INTERVAL:-*/5 * * * *}
+
+      # OpenClaw gateway password (for web UI at :18789)
+      OPENCLAW_PASSWORD: ${OPENCLAW_PASSWORD:-change-me-in-env}
+
+      NODE_ENV: production
+    volumes:
+      # Persist cron jobs, bet state, credentials
+      - openclaw-data:/root/.openclaw
+    ports:
+      # OpenClaw gateway web UI (optional monitoring)
+      - "18789:18789"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:18789/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+
+volumes:
+  zg-broker-data:
+    driver: local
+  openclaw-data:
+    driver: local

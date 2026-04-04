@@ -1,0 +1,74 @@
+{
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "0g/qwen-2.5-7b-instruct"
+      },
+      "workspace": "/root/.openclaw/workspace",
+      "models": {
+        "0g/qwen-2.5-7b-instruct": {
+          "params": {
+            "compat": {
+              "supportsDeveloperRole": false
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "0g": {
+        "baseUrl": "${ZG_SERVICE_URL}/v1/proxy",
+        "apiKey": "${ZG_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "qwen-2.5-7b-instruct",
+            "name": "Qwen 2.5 7B Instruct (0G Compute)",
+            "contextWindow": 32768,
+            "maxTokens": 4096,
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
+          }
+        ]
+      }
+    }
+  },
+
+  "gateway": {
+    "port": 18789,
+    "bind": "all",
+    "auth": {
+      "mode": "password",
+      "password": "${OPENCLAW_PASSWORD}"
+    }
+  },
+
+  "cron": {
+    "enabled": true,
+    "maxConcurrentRuns": 1,
+    "retry": {
+      "maxAttempts": 3,
+      "backoffMs": [30000, 60000, 120000],
+      "retryOn": ["rate_limit", "overloaded", "network", "server_error"]
+    }
+  },
+
+  "skills": {
+    "entries": {
+      "instabet-trader": {
+        "enabled": true,
+        "env": {
+          "INSTABET_BASE_URL": "${INSTABET_BASE_URL}",
+          "INSTABET_API_KEY": "${INSTABET_API_KEY}",
+          "BET_AMOUNT": "${BET_AMOUNT}",
+          "CONFIDENCE_THRESHOLD": "${CONFIDENCE_THRESHOLD}"
+        }
+      }
+    }
+  }
+}
