@@ -2,11 +2,11 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "0g/qwen-2.5-7b-instruct"
+        "primary": "0g/qwen/qwen-2.5-7b-instruct"
       },
       "workspace": "/root/.openclaw/workspace",
       "models": {
-        "0g/qwen-2.5-7b-instruct": {
+        "0g/qwen/qwen-2.5-7b-instruct": {
           "params": {
             "compat": {
               "supportsDeveloperRole": false
@@ -26,7 +26,7 @@
         "api": "openai-completions",
         "models": [
           {
-            "id": "qwen-2.5-7b-instruct",
+            "id": "qwen/qwen-2.5-7b-instruct",
             "name": "Qwen 2.5 7B Instruct (0G Compute)",
             "contextWindow": 32768,
             "maxTokens": 4096,
@@ -40,8 +40,9 @@
   },
 
   "gateway": {
+    "mode": "local",
     "port": 18789,
-    "bind": "all",
+    "bind": "auto",
     "auth": {
       "mode": "password",
       "password": "${OPENCLAW_PASSWORD}"

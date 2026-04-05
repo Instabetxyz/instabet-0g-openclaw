@@ -19,8 +19,8 @@ const {
   PRIVATE_KEY,
   ZG_PROVIDER_ADDRESS,
   ZG_NETWORK = "testnet",
-  ZG_DEPOSIT_AMOUNT = "0.2",
-  ZG_PROVIDER_FUND = "0.1",
+  ZG_DEPOSIT_AMOUNT = "3",
+  ZG_PROVIDER_FUND = "1",
   PROXY_PORT = "3001",
 } = process.env;
 

@@ -5,6 +5,8 @@ Autonomous prediction market betting agent combining:
 - **[0G Compute](https://docs.0g.ai/developer-hub/building-on-0g/compute-network/inference)** — Decentralised, verifiable LLM inference (on-chain payments)
 - **[Instabet](https://github.com/instabetxyz/backend)** — Live-stream prediction markets
 
+OPENCLAW BUG: https://github.com/openclaw/openclaw/issues/44110   
+
 ---
 
 ## How it works

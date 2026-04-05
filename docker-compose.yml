@@ -20,30 +20,6 @@ services:
   # ── 0G Compute broker + proxy ─────────────────────────────────────────────
   # setup.mjs uses the SDK to fund accounts non-interactively,
   # then starts `0g-compute-cli inference serve` on port 3001.
-  zg-broker:
-    build:
-      context: ./zg-broker
-      dockerfile: Dockerfile
-    container_name: instabet-zg-broker
-    restart: unless-stopped
-    environment:
-      PRIVATE_KEY: ${ZG_WALLET_PRIVATE_KEY}
-      ZG_PROVIDER_ADDRESS: ${ZG_PROVIDER_ADDRESS}
-      ZG_NETWORK: ${ZG_NETWORK:-testnet}
-      ZG_DEPOSIT_AMOUNT: ${ZG_DEPOSIT_AMOUNT:-0.5}
-      ZG_PROVIDER_FUND: ${ZG_PROVIDER_FUND:-0.1}
-      PROXY_PORT: "3001"
-    volumes:
-      - zg-broker-data:/root/.0g-compute-cli
-    ports:
-      - "3001:3001"
-    healthcheck:
-      # The proxy exposes /v1/proxy/models once ready
-      test: ["CMD", "curl", "-sf", "http://localhost:3001/v1/proxy/models"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
-      start_period: 90s
 
   # ── OpenClaw agent ────────────────────────────────────────────────────────
   instabet-agent:
@@ -52,12 +28,9 @@ services:
       dockerfile: Dockerfile
     container_name: instabet-agent
     restart: unless-stopped
-    depends_on:
-      zg-broker:
-        condition: service_healthy
     environment:
       # 0G Compute — routes through the broker sidecar
-      ZG_SERVICE_URL: http://zg-broker:3001
+      ZG_SERVICE_URL: https://compute-network-6.integratenetwork.work
       ZG_API_KEY: ${ZG_API_KEY:-zg-proxy}
 
       # Instabet API
